@@ -19,10 +19,10 @@ jmp 0x0000:start
 
 %macro options 1
     add dh, 2
-    mov  dl, 5
-	mov  bh, 0
-	mov  ah, 02h
-	int  10h
+    mov dl, 5
+	mov bh, 0
+	mov ah, 02h
+	int 10h
     mov si, %1
     call printc
 %endmacro
@@ -30,6 +30,7 @@ jmp 0x0000:start
 %macro readans 1
     call getc
     cmp al, %1
+    call check
 %endmacro
 
 data:
@@ -45,10 +46,10 @@ data:
 
     q3 db '3) QUAL O PATRONO DE HARRY POTTER?',0
     a3 db 'a) Cervo', 0
-    b3 db 'b) Fênix', 0
+    b3 db 'b) Fenix', 0
     c3 db 'c) Coruja', 0
 
-    q4 db '4) QUAL FOI A ÚLTIMA HORCRUX A SER DESTRUIDA?',0
+    q4 db '4) QUAL FOI A ULTIMA HORCRUX A SER DESTRUIDA?',0
     a4 db 'a) A tiara de Rowena Ravenclaw', 0
     b4 db 'b) Nagini', 0
     c4 db 'c) O anel de Marvolo Gaunt', 0
@@ -71,7 +72,9 @@ data:
 
 start:
     xor ax, ax
+    xor bx, bx
     xor cx, cx
+    xor dx, dx
 
     jmp question
 
@@ -83,7 +86,6 @@ question:
     options b1
     options c1
     readans 'a'
-    je .right
 
     screen 13
 	mov si, q2
@@ -93,7 +95,7 @@ question:
     options c2
     readans 'c'
 
-    screen 11
+    screen 8
 	mov si, q3
     call printc       
     options a3
@@ -101,7 +103,7 @@ question:
     options c3
     readans 'a'
 
-    screen 14
+    screen 1
 	mov si, q4
     call printc       
     options a4
@@ -117,7 +119,7 @@ question:
     options c5
     readans 'b'
     
-    screen 6
+    screen 5
 	mov si, q6
     call printc       
     options a6
@@ -132,9 +134,6 @@ question:
     options b7
     options c7
     readans 'c'
-
-    .right:
-        inc cl
 ret
 
 clean:
@@ -177,6 +176,13 @@ printc:
 getc:
   mov ah, 0x00
   int 16h
+ret
+
+check:
+    je .right
+
+    .right:
+    ret
 ret
 
 jmp 0x7E00
