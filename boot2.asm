@@ -11,9 +11,7 @@ jmp 0x000:start
 %endmacro
 
 data:
-title db 'BOTTER', 13
 string db 'Juro solenemente que nao pretendo fazer nada de bom...', 13
-string2 db 'LUMUS MAXIMA', 13
 
 delay:
 ;Setting a delay for printing 
@@ -73,21 +71,6 @@ start:
 	mov si, string
 	call pstr
     call clean
-
-    setter 8, 34, 14
-    mov si, string2
-	call pstr
-    
-    call clean 
-
-    mov ah, 0xb  
-	mov bh, 0 
-	mov bl, 7   
-	int 10h
-
-    setter 8, 34, 1
-	mov si, title
-	call pstr
 	
     end:
 	xor ax, ax

@@ -16,13 +16,13 @@ jmp 0x0000:start
 	mov bl, %3 		;Letter color
 %endmacro
 
-screen db 'BOTTER', 13
-low db 'BOTTER', 0
+lumus db 'LUMUS MAXIMA', 0
+title db 'BOTTER', 0
 begin db 'Pressione enter para iniciar o quiz',13
 
 delay:
-	mov bp, 500
-	mov dx, 500
+	mov bp, 1000
+	mov dx, 1000
 
 	delay2:
 		dec bp
@@ -34,8 +34,8 @@ delay:
 ret
 
 delay3:
-	mov bp, 800
-	mov dx, 800
+	mov bp, 1000
+	mov dx, 1000
 
 	delay4:
 		dec bp
@@ -47,7 +47,7 @@ delay3:
 ret
 
 resetc:
-;Setting the cursor to top left-most corner of screen
+;Setting the cursor to top left-most corner of lumus
 	mov dx, 0 
     mov bh, 0      
     mov ah, 0x2
@@ -55,7 +55,7 @@ resetc:
 ret
 
 clean:
-;Cleaning the screen
+;Cleaning the lumus
     call resetc
 
     delete:
@@ -99,33 +99,30 @@ start:
     ;mov ah, 0
 	;mov al, 12h
 	;int 10h
-
-    setter 1, 34, 13 	; Blue
-	mov si, screen
-	call pscreen
-	call delay
-
-    setter 14, 34, 5 	;Yellow
-	mov si, screen
-	call pscreen
-	call delay
-
-    setter 2, 34, 14 ;red
-	mov si, screen
-	call pscreen
-	call delay
-
-    setter 2, 34, 15 	;Green
-	mov si, screen
-	call pscreen
-    call delay
-
+	
+	setter 0, 34, 14
+	mov si, lumus
+	call pstr
     call clean
 
+    setter 6, 34, 5 
+	call delay
+
+    setter 4, 34, 14
+	call delay
+
+    setter 12, 34, 15
+    call delay
+
+	setter 14, 34, 15
+    call delay
+
+	setter 0, 34, 15
+    call delay
+
     setter 9, 35, 15
-    mov si, low
+    mov si, title
     call pstr
-    
     call delay
 
     mov  dl, 22
