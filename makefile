@@ -1,5 +1,5 @@
 # Primeiro estágio do boot
-boot1File = boot1
+boot1 = boot1
 
 # Segundo estágio do boot
 boot2 = boot2
@@ -28,7 +28,7 @@ createDisk:
 	@dd if=/dev/zero of=$(bootDisk) bs=$(blockSize) count=$(diskSize) status=noxfer
 
 boot1Only:
-	@nasm $(nasmFlags) $(boot1File).asm -o $(boot1File).bin
+	@nasm $(nasmFlags) $(boot1).asm -o $(boot1).bin
 
 boot2Only:
 	@nasm $(nasmFlags) $(boot2).asm -o $(boot2).bin
@@ -40,7 +40,7 @@ botter:
 	nasm -f bin $(botter).asm -o $(botter).bin
 
 writeBoot1:
-	@dd if=$(boot1File).bin of=$(bootDisk) bs=$(blockSize) count=1 conv=notrunc status=noxfer
+	@dd if=$(boot1).bin of=$(bootDisk) bs=$(blockSize) count=1 conv=notrunc status=noxfer
 
 writeBoot2:
 	@dd if=$(boot2).bin of=$(bootDisk) bs=$(blockSize) seek=$(boot2Pos) count=$(boot2Size) conv=notrunc status=noxfer
@@ -56,5 +56,5 @@ launchQemu:
 	@qemu-system-i386 $(qemuFlags) $(bootDisk)
 
 clean:
-	@rm -f *.bin $(boot_disk) *~
+	@rm -f *.bin $(bootDisk) *~
 	clear
