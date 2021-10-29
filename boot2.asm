@@ -1,73 +1,123 @@
-org 0x500 ; Endereço linear de memória do boot2.asm
-jmp 0x0000:start
+org 0x500
+jmp 0x000:start
 
-runK db 'Rodando o kernel...', 0
-
-printStr:
-	lodsb
-	cmp al,0
-	je end
-
-	mov ah, 0eh
-	mov bl, 15
+%macro setter 3
+	mov ah, 02h
+	mov bh, 00
+	mov dh, %1
+	mov dl, %2
 	int 10h
+    mov bl, %3
+%endmacro
 
-	mov dx, 0
+data:
+title db 'BOTTER', 13
+string db 'Juro solenemente que nao pretendo fazer nada de bom...', 13
+string2 db 'LUMUS MAXIMA', 13
 
-	.delayPrint:
-	inc dx
-	mov cx, 0
-		.time:
-			inc cx
-			cmp cx, 10000
-			jne .time
-	cmp dx, 1000
+delay:
+;Setting a delay for printing 
+	mov bp, 100
+	mov dx, 400 ;Speed associated to each letter 
 
-	jne .delayPrint
+	delay2:
+		dec bp
+		;nop
+		jnz delay2
 
-	jmp printStr
+	dec dx
+	jnz delay2
+ret
 
-	end:
-		mov ah, 0eh
-		mov al, 0xd
-		int 10h
-		mov al, 0xa
-		int 10h
-		ret
+resetc:
+;Setting the cursor to top left-most corner of screen
+	mov dx, 0 
+    mov bh, 0      
+    mov ah, 0x2
+    int 0x10
+ret
+
+clean:
+;Cleaning the screen
+    call resetc
+
+    delete:
+    ;Printing 2000 characteres
+    mov cx, 2000 
+    mov bh, 0
+    mov al, 0x20
+    mov ah, 0x9
+    int 0x10
+    
+    call resetc
+ret
+
+pstr:
+;Printing the string loader from the memory
+	lodsb
+	mov ah, 0xe
+	mov bh, 0
+	int 10h
+	call delay
+	cmp al, 13
+	jne pstr
+ret
 
 start:
-    xor ax, ax
-    mov ds, ax
-    mov es, ax
+    begin:
+	mov ah, 0 ;Video mode
+	mov al, 12h ;VGA mode
+	int 10h ;
 
-    mov si, runK
-    call printStr
+    setter 0, 0, 15
+	mov si, string
+	call pstr
+    call clean
 
-    reset:
-        mov ah, 00h ; Resetando o controlador de disco
-        mov dl, 0
-        int 13h
+    setter 8, 34, 14
+    mov si, string2
+	call pstr
+    
+    call clean 
 
-        jc reset    ; Se o acesso falhar, tenta novamente
+    mov ah, 0xb  
+	mov bh, 0 
+	mov bl, 7   
+	int 10h
 
-        jmp loadK
+    setter 8, 34, 1
+	mov si, title
+	call pstr
+	
+    end:
+	xor ax, ax
+	mov ds, ax
 
-    loadK:
-        mov ax, 0x7E0	; Setando a posição do disco onde kernel.asm foi armazenado
-        mov es, ax
-        xor bx, bx
+reset:
+;Reseting floppy disk
+	mov ah,0		
+	mov dl,0		
+	int 13h			
+	jc reset		;If ERROR, tries again
 
-        mov ah, 0x02 ; Lendo um setor do disco
-        mov al, 20  ; Quantidade de setores ocupados pelo kernel.asm
-        mov ch, 0   ; Track 0
-        mov cl, 3   ; Setor 3
-        mov dh, 0   ; Head 0
-        mov dl, 0   ; Drive 0
-        int 13h
+load:
+	mov ax,0x7E0	;0x7E0<<1 + 0 = 0x7E00
+	mov es, ax
+	xor bx, bx
 
-        jc loadK ; Se o acesso falhar, tenta novamente
+    ;Setting ROM position
+	mov ah, 0x02
+	mov al, 4	
+	mov dl, 0	
 
-        jmp 0x7e00  ; Pulando para o endereço do kernel.asm
-
-times 510-($-$$) db 0 ; 512 bytes
-dw 0xaa55	; Assinatura do disco
+    ;Setting memory positions
+	mov ch,0
+	mov cl,3
+	mov dh,0	
+	int 13h
+    
+	jc load			;If ERROR, tries again
+    jmp 0x7e00
+ 
+times 510-($-$$) db 0
+dw 0xaa55
