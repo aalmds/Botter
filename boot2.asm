@@ -90,14 +90,12 @@ load:
 
     ;Setting ROM position
 	mov ah, 0x02
-	mov al, 4	
-	mov dl, 0	
-
-    ;Setting memory positions
-	mov ch,0
-	mov cl,3
-	mov dh,0	
-	int 13h
+    mov al, 20  ;porção de setores ocupados pelo kernel.asm
+    mov ch, 0   ;track 0
+    mov cl, 3   ;setor 3
+    mov dh, 0   ;head 0
+    mov dl, 0   ;drive 0
+    int 13h
     
 	jc load			;If ERROR, tries again
     jmp 0x7e00
