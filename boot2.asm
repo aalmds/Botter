@@ -1,7 +1,7 @@
 org 0x500
 jmp 0x000:start
 
-%macro setter 3
+%macro screen 3
 	mov ah, 02h
 	mov bh, 00
 	mov dh, %1
@@ -11,12 +11,27 @@ jmp 0x000:start
 %endmacro
 
 data:
-string db 'Juro solenemente que nao pretendo fazer nada de bom...', 13
+	openg db 'Juro solenemente que nao pretendo fazer nada de bom...', 0
+
+start:
+	mov ah, 0 ;Video mode
+	mov al, 12h ;VGA mode
+	int 10h ;
+
+    screen 0, 0, 15
+	mov si, openg
+	call pstrslow
+    call clean
+	
+	xor ax, ax
+	mov ds, ax
+
+	jmp reset
 
 delay:
 ;Setting a delay for printing 
-	mov bp, 100
-	mov dx, 400 ;Speed associated to each letter 
+	mov bp, 500
+	mov dx, 500 ;Speed associated to each letter 
 
 	delay2:
 		dec bp
@@ -45,36 +60,24 @@ clean:
     mov bh, 0
     mov al, 0x20
     mov ah, 0x9
-    int 0x10
+    int 10h
     
     call resetc
 ret
 
-pstr:
-;Printing the string loader from the memory
+pstrslow: 
 	lodsb
+	cmp al, 0
+	je .end
+
 	mov ah, 0xe
-	mov bh, 0
-	int 10h
-	call delay
-	cmp al, 13
-	jne pstr
-ret
+	int 10h	
 
-start:
-    begin:
-	mov ah, 0 ;Video mode
-	mov al, 12h ;VGA mode
-	int 10h ;
+	call delay 
+	jmp pstrslow
 
-    setter 0, 0, 15
-	mov si, string
-	call pstr
-    call clean
-	
-    end:
-	xor ax, ax
-	mov ds, ax
+	.end:
+    	ret
 
 reset:
 ;Reseting floppy disk
@@ -82,9 +85,10 @@ reset:
 	mov dl,0		
 	int 13h			
 	jc reset		;If ERROR, tries again
+	jmp load
 
 load:
-	mov ax,0x7E0	;0x7E0<<1 + 0 = 0x7E00
+	mov ax, 0x7E0	;0x7E0<<1 + 0 = 0x7E00
 	mov es, ax
 	xor bx, bx
 

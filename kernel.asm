@@ -4,11 +4,11 @@ jmp 0x0000:start
 %macro level 1
 ;Configura a tela de exibição do nível e printa o nível do jogador.
     screen 9, 10, 35    ;Configura a tela.
-	mov bl, 15          ;Configura a cor da letra da string.
+    mov bl, 15          ;Configura a cor da letra da string.
     mov si, %1          ;Seta qual string será printada.
-    call pstr           ;Printa a string letra por letra.
+    call pstrslow       ;Printa a string letra por letra.
     call getc           ;Recebe um caractere do teclado.
-	cmp al, 0x0D        ;Compara o caractere com "enter".
+    cmp al, 0x0D        ;Compara o caractere com "enter".
 %endmacro
 
 %macro screen 3
@@ -17,22 +17,22 @@ jmp 0x0000:start
     call clean          ;Limpa o conteúdo da tela anterior.
 
     mov ah, 0xb         ;Chamada para escolher a cor da tela.
-	mov bh, 0           ;Número da página.
-	mov bl, %1          ;Configura cor da tela.
-	int 10h	            ;Interrupção para print.
+    mov bh, 0           ;Número da página.
+    mov bl, %1          ;Configura cor da tela.
+    int 10h	            ;Interrupção para print.
 
-	mov ah, 2           ;Chamada para setar a posição do cursor.
-	mov bh, 0           ;Número da página.
-	mov dh, %2          ;Offset vertical.
-	mov dl, %3          ;Offset horizontal.
-	int 10h             ;Interrupção para print.
+    mov ah, 2           ;Chamada para setar a posição do cursor.
+    mov bh, 0           ;Número da página.
+    mov dh, %2          ;Offset vertical.
+    mov dl, %3          ;Offset horizontal.
+    int 10h             ;Interrupção para print.
 %endmacro
 
 %macro question 4
 ;Configura o print das questões.
     mov bl, 15          ;Configura a cor da letra da string.
-	mov si, %1          ;Seta qual string será printada.
-    call printc         ;Printa a questão.
+    mov si, %1          ;Seta qual string será printada.
+    call pstr           ;Printa a questão.
     options %2          ;Printa a letra 'a' da questão.
     options %3          ;Printa a letra 'b' da questão.
     options %4          ;Printa a letra 'c' da questão. 
@@ -40,14 +40,14 @@ jmp 0x0000:start
 
 %macro options 1
 ;Configura o print das opções de cada questão.
-	mov ah, 2           ;Chamada para setar a posição do cursor.
+    mov ah, 2           ;Chamada para setar a posição do cursor.
     mov bh, 0           ;Número da página.
     add dh, 2           ;Offset vertical.
     mov dl, 5           ;Offset horizontal.
-	int 10h             ;Interrupção para print.
+    int 10h             ;Interrupção para print.
 
     mov si, %1          ;Seta qual string será printada.
-    call printc         ;Printa a letra correspondente.
+    call pstr           ;Printa a letra correspondente.
 %endmacro
 
 %macro readans 1
@@ -57,46 +57,46 @@ jmp 0x0000:start
     jne over            ;Pula para a tela de game over, caso a resposta tenha sido errada.
 %endmacro
 
-%macro result 3
+%macro result 4
 ;Configura a tela de resultado: ganhar ou perder.
-    screen 0, 10, 35    ;Configura a tela.
-	mov bl, %1          ;Configura a cor da letra da string.
-    mov si, %2          ;Seta qual string será printada.
-    call printc         ;Printa o resultado.
+    screen 0, 10, %1    ;Configura a tela.
+    mov bl, %2          ;Configura a cor da letra da string.
+    mov si, %3          ;Seta qual string será printada.
+    call pstr           ;Printa o resultado.
 
     mov  ah, 02h        ;Chamada para setar a posição do cursor.  
     mov  bh, 0          ;Número da página.
     mov  dh, 15         ;Offset vertical.
     mov  dl, 22         ;Offset horizontal.
-	int  10h            ;Interrupção para print.
-    mov si, %3          ;Seta qual string será printada.
-    call pscreen        ;Printa o resultado
+    int  10h            ;Interrupção para print.
+    mov si, %4          ;Seta qual string será printada.
+    call pstr           ;Printa o resultado
 
     call getc           ;Recebe um caractere do teclado.
-	cmp al, 0x0D        ;Compara o caractere com "enter".
-	je menu             ;Pula para a tela de menu, caso o jogador pressione "enter".
+    cmp al, 0x0D        ;Compara o caractere com "enter".
+    je menu             ;Pula para a tela de menu, caso o jogador pressione "enter".
 
     jmp end             ;Encerra o jogo, caso o jogador pressione uma tecla diferente de "enter".
 %endmacro
 
 data:
 ;Define todas as strings que serão utilizadas ao longo do jogo na memória.
-	lumus db 'LUMUS MAXIMA', 0
-	title db 'BOTTER', 0
+    lumus db 'LUMUS MAXIMA', 0
+    title db 'BOTTER', 0
 
     l1 db 'NIVEL 1', 0
     l2 db 'NIVEL 2', 0
     l3 db 'NIVEL 3', 0
 
-	begin db 'Pressione enter para iniciar o quiz', 13
-    tagain db 'Pressione enter para tentar novamente', 13
-    again db 'Pressione enter para jogar novamente', 13
-    endg db 'Malfeito feito...', 0
+    begin db 'Pressione enter para iniciar o quiz', 0
+    tagain db 'Pressione enter para tentar novamente', 0
+    again db 'Pressione enter para jogar novamente', 0
+    closeg db 'Malfeito feito...', 0
 
     slose db 'AVADA KEDAVRA', 0
     swin db 'VOCE CONQUISTOU AS RELIQUIAS DA MORTE', 0
     
-	q1 db 'O QUE TEM EM COMUM ENTRE AS VARINHAS DE HARRY POTTER E VOLDEMORT?', 0
+    q1 db 'O QUE TEM EM COMUM ENTRE AS VARINHAS DE HARRY POTTER E VOLDEMORT?', 0
     a1 db 'a) Nucleo', 0
     b1 db 'b) Madeira', 0
     c1 db 'c) Formato', 0
@@ -142,51 +142,51 @@ data:
     c9 db 'c) Juro solenemente fazer tudo de ruim', 0
 
 start:
-	screen 0, 8, 34     ;Configura a tela.
-	mov bl, 14          ;Configura a cor da letra da string.
-	mov si, lumus       ;Seta qual string será printada.
-	call pstr           ;Printa a string letra por letra.
+    screen 0, 8, 34     ;Configura a tela.
+    mov bl, 14          ;Configura a cor da letra da string.
+    mov si, lumus       ;Seta qual string será printada.
+    call pstrslow           ;Printa a string letra por letra.
 
     call clean          ;Limpa o conteúdo da tela anterior.  
 
     screen 6, 8, 34     ;Configura a tela.
-	call delay          ;Chama o delay.
+    call delay          ;Chama o delay.
 
     screen 4, 8, 34     ;Configura a tela.
-	call delay          ;Chama o delay.
+    call delay          ;Chama o delay.
 
     screen 12, 8, 34    ;Configura a tela.
     call delay          ;Chama o delay.
 
-	screen 14, 8, 34    ;Configura a tela.
+    screen 14, 8, 34    ;Configura a tela.
     call delay          ;Chama o delay.
 
-	screen 0, 8, 34     ;Configura a tela.
+    screen 0, 8, 34     ;Configura a tela.
     call delay          ;Chama o delay.
 
     jmp menu            ;Pula para a tela de menu.
 
 menu:    
     screen 9, 8, 35     ;Configura a tela
-	mov bl, 15
+    mov bl, 15
     mov si, title       
-    call pstr
+    call pstrslow
     call delay
 
     mov  dl, 22
     mov  dh, 15
-	mov  bh, 0
-	mov  ah, 02h
-	int  10h
+    mov  bh, 0
+    mov  ah, 02h
+    int  10h
     mov si, begin
-    call pscreen
+    call pstr
 
-	call getc
-	cmp al, 0x0D
-	je botter
+    call getc
+    cmp al, 0x0D
+    je botter
 	
 botter:
-	xor ax, ax
+    xor ax, ax
     xor bx, bx
     xor cx, cx
     xor dx, dx
@@ -208,7 +208,7 @@ level1:
     readans 'c'
 
     screen 8, 2, 2
-	question q3, a3, b3, c3
+    question q3, a3, b3, c3
     readans 'a'
 ret
 
@@ -219,7 +219,7 @@ level2:
     readans 'b'
 
     screen 13, 2, 2
-	question q5, a5, b5, c5
+    question q5, a5, b5, c5
     readans 'b'
     
     screen 13, 2, 2
@@ -230,15 +230,15 @@ ret
 level3:
     level l3
     screen 12, 2, 2
-	question q7, a7, b7, c7
+    question q7, a7, b7, c7
     readans 'c'
 
     screen 12, 2, 2
-	question q8, a8, b8, c8
+    question q8, a8, b8, c8
     readans 'c'
 
     screen 12, 2, 2
-	question q9, a9, b9, c9
+    question q9, a9, b9, c9
     readans 'b'
 ret
 
@@ -252,83 +252,74 @@ clean:
     mov bh, 0
     mov al, 0x20
     mov ah, 0x9
-    int 0x10
+    int 10h
     
     call resetc
 ret
 
 resetc:
 ;Setting the cursor to top left-most corner of screen
-	mov dx, 0 
+    mov dx, 0 
     mov bh, 0      
     mov ah, 0x2
     int 0x10
 ret
 
 delay:
-	mov bp, 500
-	mov dx, 1000
+    mov bp, 700
+    mov dx, 500
 
-	delay2:
-		dec bp
-		;nop
-		jnz delay2
+    delay2:
+        dec bp
+        nop
+        jnz delay2
 
-	dec dx
-	jnz delay2
+    dec dx
+    jnz delay2
 ret
 
 getc:
-	mov ah, 0x00
-	int 16h
+    mov ah, 0x00
+    int 16h
 ret
 
-pstr: 
-	lodsb
-	cmp al,0
-	je .end
+pstrslow: 
+    lodsb
+    cmp al, 0
+    je .end
 
-	mov ah, 0xe
-	int 10h	
+    mov ah, 0xe
+    int 10h	
 
-	call delay 
-	jmp pstr
+    call delay 
+    jmp pstrslow
 
-	.end:
-    	ret
+    .end:
+        ret
 
-pscreen:
-	lodsb
-	mov ah, 0xe
-	mov bh, 0
-	int 10h
-	cmp al, 13
-	jne pscreen
-ret
-
-printc:
-	lodsb 
-	mov cl, 0
-	cmp cl, al
-	je .done
+pstr:
+    lodsb 
+    cmp al, 0
+    je .end
 	
-	mov ah, 0xe
-	int 0x10
+    mov ah, 0xe
+    int 10h
 
-	jmp printc
+    jmp pstr
 	
-	.done:
-    ret
+    .end:
+        ret
 
 win:
-    result 9, swin, again
+    result 22, 9, swin, again
 
-over
-    result 2, slose, tagain
+over:
+    result 33,2, slose, tagain
+
 end:
     screen 0, 0, 0
-	mov bl, 15
-    mov si, endg
-    call pstr
+    mov bl, 15
+    mov si, closeg
+    call pstrslow
 
-	jmp $
+    jmp $
