@@ -5,15 +5,17 @@ jmp 0x0000:start
 ;Configura a tela de exibição do nível e printa o nível do jogador.
     screen 9, 10, 35    ;Configura a tela.
     mov bl, 15          ;Configura a cor da letra da string.
+
     mov si, %1          ;Seta qual string será printada.
     call pstrslow       ;Printa a string letra por letra.
+
     call getc           ;Recebe um caractere do teclado.
     cmp al, 0x0D        ;Compara o caractere com "enter".
 %endmacro
 
 %macro screen 3
 ;Configura a tela de vídeo, limpando o conteúdo anterior, setando a cor de fundo e 
-    ;posicionando o cursor no local onde a string deverá ser printada.
+    ;posicionando o setcur no local onde a string deverá ser printada.
     call clean          ;Limpa o conteúdo da tela anterior.
 
     mov ah, 0xb         ;Chamada para escolher a cor da tela.
@@ -21,18 +23,14 @@ jmp 0x0000:start
     mov bl, %1          ;Configura cor da tela.
     int 10h	            ;Interrupção para print.
 
-    mov ah, 2           ;Chamada para setar a posição do cursor.
-    mov bh, 0           ;Número da página.
-    mov dh, %2          ;Offset vertical.
-    mov dl, %3          ;Offset horizontal.
-    int 10h             ;Interrupção para print.
+    setcur %2, %3
 %endmacro
 
 %macro question 4
 ;Configura o print das questões.
     mov bl, 15          ;Configura a cor da letra da string.
     mov si, %1          ;Seta qual string será printada.
-    call pstr           ;Printa a questão.
+    call pstr           ;Printa a questão.    
     options %2          ;Printa a letra 'a' da questão.
     options %3          ;Printa a letra 'b' da questão.
     options %4          ;Printa a letra 'c' da questão. 
@@ -40,12 +38,8 @@ jmp 0x0000:start
 
 %macro options 1
 ;Configura o print das opções de cada questão.
-    mov ah, 2           ;Chamada para setar a posição do cursor.
-    mov bh, 0           ;Número da página.
     add dh, 2           ;Offset vertical.
-    mov dl, 5           ;Offset horizontal.
-    int 10h             ;Interrupção para print.
-
+    setcur dh, 2
     mov si, %1          ;Seta qual string será printada.
     call pstr           ;Printa a letra correspondente.
 %endmacro
@@ -64,11 +58,7 @@ jmp 0x0000:start
     mov si, %3          ;Seta qual string será printada.
     call pstr           ;Printa o resultado.
 
-    mov  ah, 02h        ;Chamada para setar a posição do cursor.  
-    mov  bh, 0          ;Número da página.
-    mov  dh, 15         ;Offset vertical.
-    mov  dl, 22         ;Offset horizontal.
-    int  10h            ;Interrupção para print.
+    setcur 15, 22
     mov si, %4          ;Seta qual string será printada.
     call pstr           ;Printa o resultado
 
@@ -77,6 +67,14 @@ jmp 0x0000:start
     je menu             ;Pula para a tela de menu, caso o jogador pressione "enter".
 
     jmp end             ;Encerra o jogo, caso o jogador pressione uma tecla diferente de "enter".
+%endmacro
+
+%macro setcur 2
+    mov ah, 2           ;Chamada para setar a posição do setcur.
+    mov bh, 0           ;Número da página.
+    mov dh, %1          ;Offset vertical.
+    mov dl, %2          ;Offset horizontal.
+    int 10h             ;Interrupção para print.
 %endmacro
 
 data:
@@ -173,11 +171,7 @@ menu:
     call pstrslow
     call delay
 
-    mov  dl, 22
-    mov  dh, 15
-    mov  bh, 0
-    mov  ah, 02h
-    int  10h
+    setcur 15, 22
     mov si, begin
     call pstr
 
@@ -244,7 +238,7 @@ ret
 
 clean:
 ;Cleaning the screen
-    call resetc
+    setcur 0, 0
 
     delete:
     ;Printing 2000 characteres
@@ -254,15 +248,7 @@ clean:
     mov ah, 0x9
     int 10h
     
-    call resetc
-ret
-
-resetc:
-;Setting the cursor to top left-most corner of screen
-    mov dx, 0 
-    mov bh, 0      
-    mov ah, 0x2
-    int 0x10
+    setcur 0, 0
 ret
 
 delay:
