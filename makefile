@@ -1,12 +1,12 @@
-# Primeiro estágio do boot
+#Primeiro estágio do boot
 boot1File = boot1
 
-# Segundo estágio do boot
+#Segundo estágio do boot
 boot2File = boot2
 boot2Pos = 1
 boot2Size = 1
 
-# Informações do kernel 
+#Informações do kernel 
 kernelFile = kernel
 kernelPos = 2
 kernelSize = 20

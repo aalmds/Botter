@@ -1,4 +1,4 @@
-org 0x500
+org 0x500				;Endereço linear de memória do boot2.asm.
 jmp 0x000:start
 
 %macro screen 3
@@ -14,28 +14,28 @@ data:
 	openg db 'Juro solenemente que nao pretendo fazer nada de bom...', 0
 
 start:
-	mov ah, 0 ;Video mode
-	mov al, 12h ;VGA mode
-	int 10h ;
+	mov ah, 0 			;Modo vídeo.
+	mov al, 12h 		;Modo VGA.
+	int 10h
 
     screen 0, 0, 15
 	mov si, openg
 	call pstrslow
     call clean
 	
-	xor ax, ax
-	mov ds, ax
+	mov ax, 0x7E0		;Seta a posição do disco onde kernel.asm foi armazenado.
+	mov es, ax
+	xor bx, bx
 
 	jmp reset
 
 delay:
-;Setting a delay for printing 
+;Configura um delay.
 	mov bp, 500
-	mov dx, 500 ;Speed associated to each letter 
+	mov dx, 500
 
 	delay2:
 		dec bp
-		;nop
 		jnz delay2
 
 	dec dx
@@ -43,7 +43,7 @@ delay:
 ret
 
 resetc:
-;Setting the cursor to top left-most corner of screen
+;Seta o cursor para o canto mais esquerdo superior da tela.
 	mov dx, 0 
     mov bh, 0      
     mov ah, 0x2
@@ -51,11 +51,11 @@ resetc:
 ret
 
 clean:
-;Cleaning the screen
+;Limpa o conteúdo da tela anterior.  
     call resetc
 
     delete:
-    ;Printing 2000 characteres
+    ;Printa 2000 caracteres na tela.
     mov cx, 2000 
     mov bh, 0
     mov al, 0x20
@@ -80,29 +80,23 @@ pstrslow:
     	ret
 
 reset:
-;Reseting floppy disk
-	mov ah,0		
-	mov dl,0		
+	mov ah, 0		
+	mov dl, 0		
 	int 13h			
-	jc reset		;If ERROR, tries again
+	jc reset			;Se o acesso falhar, tenta novamente.
 	jmp load
 
 load:
-	mov ax, 0x7E0	;0x7E0<<1 + 0 = 0x7E00
-	mov es, ax
-	xor bx, bx
-
-    ;Setting ROM position
-	mov ah, 0x02
-    mov al, 20  ;porção de setores ocupados pelo kernel.asm
-    mov ch, 0   ;track 0
-    mov cl, 3   ;setor 3
-    mov dh, 0   ;head 0
-    mov dl, 0   ;drive 0
+	mov ah, 0x02		;Lê um setor do disco.
+    mov al, 20  		;Porção de setores ocupados pelo kernel.asm.
+    mov ch, 0   		;Track 0
+    mov cl, 3   		;Sector 3.
+    mov dh, 0   		;Head 0.
+    mov dl, 0   		;Drive 0.
     int 13h
     
-	jc load			;If ERROR, tries again
+    jc load             ;Se o acesso falhar, tenta novamente.
     jmp 0x7e00
  
-times 510-($-$$) db 0
+times 510-($-$$) db 0   ;512 bytes.
 dw 0xaa55
